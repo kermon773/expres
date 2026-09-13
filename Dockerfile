@@ -12,9 +12,8 @@ RUN npm install
 # Salin seluruh kode proyek
 COPY . .
 
-# Mengompilasi TypeScript dengan parameter CLI langsung (Tanpa butuh tsconfig.json)
-# Menargetkan ESNext, modul NodeNext (untuk ES Module), dan output ke folder 'dist'
-RUN npx tsc --target esnext --module nodenext --outDir ./dist --moduleResolution nodenext ./index.ts
+# Perbaikan jalur ke src/index.ts dan penambahan flag --skipLibCheck
+RUN npx tsc --target esnext --module nodenext --outDir ./dist --moduleResolution nodenext --skipLibCheck src/index.ts
 
 # --- Stage 2: Production Stage ---
 FROM node:22-alpine AS runner
