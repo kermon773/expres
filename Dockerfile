@@ -3,16 +3,18 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Menggunakan package.json saja (tanpa lockfile)
+# Menyalin package.json
 COPY package.json ./
 
-# Menggunakan 'npm install' karena tidak ada package-lock.json
+# Install semua dependencies (termasuk TypeScript)
 RUN npm install
 
+# Salin seluruh kode proyek
 COPY . .
 
-# Kompilasi TypeScript
-RUN npm run build
+# Mengompilasi TypeScript dengan parameter CLI langsung (Tanpa butuh tsconfig.json)
+# Menargetkan ESNext, modul NodeNext (untuk ES Module), dan output ke folder 'dist'
+RUN npx tsc --target esnext --module nodenext --outDir ./dist --moduleResolution nodenext ./index.ts
 
 # --- Stage 2: Production Stage ---
 FROM node:22-alpine AS runner
@@ -23,10 +25,10 @@ ENV NODE_ENV=production
 
 COPY package.json ./
 
-# Menggunakan 'npm install' dengan bendera baru '--omit=dev' sesuai saran log error
+# Hanya menginstall library utama (express)
 RUN npm install --omit=dev
 
-# Salin hasil kompilasi
+# Menyalin hasil kompilasi dari stage builder
 COPY --from=builder /app/dist ./dist
 
 EXPOSE 3000
