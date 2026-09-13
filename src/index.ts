@@ -4,6 +4,9 @@ import axios from 'axios'
 const app = express()
 app.use(express.json())
 
+// Tentukan port 8080
+const PORT = 8080
+
 app.get('/', (_req, res) => {
   res.send('Hello Express API is running!')
 })
@@ -37,7 +40,6 @@ app.post('/api/send', async (req, res) => {
     }, {
       headers: {
         'Content-Type': 'application/json'
-        // axios sudah otomatis mengkalkulasi Content-Length, jadi tidak perlu Buffer.byteLength manual
       }
     })
     
@@ -46,6 +48,11 @@ app.post('/api/send', async (req, res) => {
     console.error("Gagal mengirim ke Discord:", error)
     res.status(500).json({ success: false, error: "Internal Server Error" })
   }
+})
+
+// Tambahkan app.listen agar aplikasi Express aktif di port 8080
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`)
 })
 
 export default app
